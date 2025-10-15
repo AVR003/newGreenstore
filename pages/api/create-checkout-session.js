@@ -8,33 +8,33 @@ export default async function handler(req, res) {
   try {
     const { items, success_url, cancel_url } = req.body;
 
-    // Create line items for Stripe
     const lineItems = items.map(item => ({
       price_data: {
-        currency: 'inr', // or 'usd'
-        product_data: {
-          name: item.name,
-        },
-        unit_amount: Math.round(item.price * 100), // Convert to cents/paisa
+        currency: 'inr',
+        product_data: { name: item.name },
+        unit_amount: Math.round(item.price * 100), // amount in paise
       },
       quantity: item.quantity,
     }));
 
-    // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
-      success_url: success_url,
-      cancel_url: cancel_url,
-      metadata: {
-        items: JSON.stringify(items),
-      },
+      success_url,
+      cancel_url,
+      metadata: { items: JSON.stringify(items) },
     });
 
     res.status(200).json({ sessionId: session.id });
   } catch (error) {
     console.error('Error creating checkout session:', error);
-    res.status(500).json({ error: 'Error creating checkout session' });
+
+    // Send the actual Stripe error back to the client
+    res.status(error.statusCode || 500).json({
+      error: error.message || 'Error creating checkout session',
+      type: error.type,
+      raw: error.raw, // optional, more details from Stripe
+    });
   }
 }
