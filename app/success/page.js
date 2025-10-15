@@ -1,5 +1,7 @@
 // src/app/success/page.js
 'use client';
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
